@@ -1,80 +1,141 @@
-const todoInput = document.querySelector('.todo__input');
-const todoBtnAdd = document.querySelector('.todo__add');
+const todoBtn = document.querySelector('.todo__add-btn');
+const todoInput = document.querySelector('.todo__add-input');
 const todoList = document.querySelector('.todo__list');
+const todoFilter = document.querySelector('.todo__filter');
 
-let tasks = [];
+document.addEventListener('DOMContentLoaded', getTodos);
+todoBtn.addEventListener('click', createItem);
+todoList.addEventListener('click', delItem);
+todoFilter.addEventListener('click', filterItem);
 
-if (localStorage.getItem('todo')) {
-  tasks = JSON.parse(localStorage.getItem('todo'));
-  tasksDisplay();
-}
+function createItem(event) {
+  event.preventDefault();
+  //create li
+  const todoItem = document.createElement('li');
+  todoItem.classList.add('todo__item');
+  todoList.appendChild(todoItem);
+  //create text
+  const todoText = document.createElement('p');
+  todoText.innerHTML = todoInput.value;
+  todoText.classList.add('todo__text');
+  todoItem.appendChild(todoText);
+  saveLocal(todoInput.value);
 
-todoBtnAdd.addEventListener('click', () => {
-  const tasksPattern = {
-    id: new Date().valueOf(),
-    task: todoInput.value,
-    status: false,
-  };
-
-  tasks.push(tasksPattern);
-
-  tasksDisplay();
-  localStorage.setItem('todo', JSON.stringify(tasks));
+  //create btns wrapper
+  const todoBtnsWrapper = document.createElement('div');
+  todoBtnsWrapper.classList.add('todo__btns');
+  todoItem.appendChild(todoBtnsWrapper);
+  //create checkbox
+  const todoCheck = document.createElement('button');
+  todoCheck.classList.add('todo__checkbox');
+  todoBtnsWrapper.appendChild(todoCheck);
+  //create brn for del
+  const todoDel = document.createElement('button');
+  todoDel.innerHTML = 'del';
+  todoDel.classList.add('todo__del-btn');
+  todoBtnsWrapper.appendChild(todoDel);
   todoInput.value = '';
-});
-
-function tasksDisplay() {
-  todoList.innerHTML = '';
-  tasks.forEach(item => {
-    let tasksDisplay = `
-		<li id="todo__item-${item.id}" class="todo__item">
-					<lable for="todo__check-${item.id}" class="todo__lable">${item.task}</lable>
-					<div class="todo__btns">
-						<input class="todo__check" type="checkbox" id="todo__check-${item.id}" ${
-      item.status ? 'checked' : ''
-    }>
-						<label class="todo__check-lable" for="todo__check-${item.id}"></label>
-						<button id="${item.id}" class="todo__del">DEL</button>
-					</div>
-				</li>
-		`;
-    todoList.innerHTML += tasksDisplay;
-  });
 }
 
-todoList.addEventListener('change', e => {
-  const todoLable = document.querySelector(
-    `[for=${e.target.getAttribute('id')}]`
-  ).innerHTML;
+function delItem(e) {
+  const item = e.target;
+  //delete
+  if (item.classList.contains('todo__del-btn')) {
+    const todo = item.closest('li');
+    delLocalTodo(todo);
 
-  tasks.forEach(function (item) {
-    if (item.task === todoLable) {
-      item.status
-        ? (e.target.parentNode.parentNode.style.opacity = '1')
-        : (e.target.parentNode.parentNode.style.opacity = '0.5');
+    todo.classList.add('del-anim');
+    todo.addEventListener('transitionend', function () {
+      todo.remove();
+    });
+  }
 
-      item.status = !item.status;
+  //complete
+  if (item.classList.contains('todo__checkbox')) {
+    item.classList.toggle('todo__checkbox--complete');
+    item.closest('li').classList.toggle('todo__item--complete');
+  }
+}
 
-      localStorage.setItem('todo', JSON.stringify(tasks));
+function filterItem(e) {
+  const todos = todoList.childNodes;
+  console.log(todos);
+  todos.forEach(function (todo) {
+    switch (e.target.value) {
+      case 'all':
+        todo.style.display = 'flex';
+        break;
+      case 'completed':
+        if (todo.classList.contains('todo__item--complete')) {
+          todo.style.display = 'flex';
+        } else {
+          todo.style.display = 'none';
+        }
+        break;
+      case 'uncompleted':
+        if (!todo.classList.contains('todo__item--complete')) {
+          todo.style.display = 'flex';
+        } else {
+          todo.style.display = 'none';
+        }
+        break;
     }
   });
-});
+}
 
-const todoBtnDel = document.querySelectorAll('.todo__del');
-todoBtnDel.forEach(item => {
-  item.addEventListener('click', function () {
-    const btnId = item.getAttribute('id');
+function saveLocal(todo) {
+  let todos;
+  if (localStorage.getItem('todos') === null) {
+    todos = [];
+  } else {
+    todos = JSON.parse(localStorage.getItem('todos'));
+  }
+  todos.push(todo);
+  localStorage.setItem('todos', JSON.stringify(todos));
+}
 
-    const todoItem = document.querySelector(`#todo__item-${btnId}`);
-    todoItem.style.display = 'none';
-
-    tasks.forEach(function (el, i) {
-      if (el.id == btnId) {
-        tasks.splice(i, 1);
-        console.log(el.id);
-      }
-    });
-
-    localStorage.setItem('todo', JSON.stringify(tasks));
+function getTodos() {
+  let todos;
+  if (localStorage.getItem('todos') === null) {
+    todos = [];
+  } else {
+    todos = JSON.parse(localStorage.getItem('todos'));
+  }
+  todos.forEach(todo => {
+    const todoItem = document.createElement('li');
+    todoItem.classList.add('todo__item');
+    todoList.appendChild(todoItem);
+    //create text
+    const todoText = document.createElement('p');
+    todoText.innerHTML = todo;
+    todoText.classList.add('todo__text');
+    todoItem.appendChild(todoText);
+    //create btns wrapper
+    const todoBtnsWrapper = document.createElement('div');
+    todoBtnsWrapper.classList.add('todo__btns');
+    todoItem.appendChild(todoBtnsWrapper);
+    //create checkbox
+    const todoCheck = document.createElement('button');
+    todoCheck.classList.add('todo__checkbox');
+    todoBtnsWrapper.appendChild(todoCheck);
+    //create brn for del
+    const todoDel = document.createElement('button');
+    todoDel.innerHTML = 'del';
+    todoDel.classList.add('todo__del-btn');
+    todoBtnsWrapper.appendChild(todoDel);
+    todoInput.value = '';
   });
-});
+}
+
+function delLocalTodo(todo) {
+  let todos;
+  if (localStorage.getItem('todos') === null) {
+    todos = [];
+  } else {
+    todos = JSON.parse(localStorage.getItem('todos'));
+  }
+  console.log(todo);
+  const todoIndex = todo.children[0].innerText;
+  todos.splice(todos.indexOf(todoIndex), 1);
+  localStorage.setItem('todos', JSON.stringify(todos));
+}
