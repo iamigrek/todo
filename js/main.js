@@ -1,141 +1,92 @@
-const todoBtn = document.querySelector('.todo__add-btn');
-const todoInput = document.querySelector('.todo__add-input');
-const todoList = document.querySelector('.todo__list');
-const todoFilter = document.querySelector('.todo__filter');
+const todoInput = document.querySelector('.header__input');
+const todoAdd = document.querySelector('.header__btn');
+const todoList = document.querySelector('.content__list');
+const todoFilter = document.querySelector('.header__filter');
 
-document.addEventListener('DOMContentLoaded', getTodos);
-todoBtn.addEventListener('click', createItem);
-todoList.addEventListener('click', delItem);
-todoFilter.addEventListener('click', filterItem);
+//Масив для хранения данных
+let todos = [];
 
-function createItem(event) {
-  event.preventDefault();
-  //create li
-  const todoItem = document.createElement('li');
-  todoItem.classList.add('todo__item');
-  todoList.appendChild(todoItem);
-  //create text
-  const todoText = document.createElement('p');
-  todoText.innerHTML = todoInput.value;
-  todoText.classList.add('todo__text');
-  todoItem.appendChild(todoText);
-  saveLocal(todoInput.value);
+//Получение данных с LocalStorage
+if (localStorage.getItem('tasks')) {
+  todos = JSON.parse(localStorage.getItem('tasks'));
+  createTask();
+}
 
-  //create btns wrapper
-  const todoBtnsWrapper = document.createElement('div');
-  todoBtnsWrapper.classList.add('todo__btns');
-  todoItem.appendChild(todoBtnsWrapper);
-  //create checkbox
-  const todoCheck = document.createElement('button');
-  todoCheck.classList.add('todo__checkbox');
-  todoBtnsWrapper.appendChild(todoCheck);
-  //create brn for del
-  const todoDel = document.createElement('button');
-  todoDel.innerHTML = 'del';
-  todoDel.classList.add('todo__del-btn');
-  todoBtnsWrapper.appendChild(todoDel);
+//Клик на кнопку "ADD"
+todoAdd.addEventListener('click', () => {
+  //Своеобразный шаблон для данных
+  const taskTemplate = {
+    //Генерация рандомного ID
+    id: Math.random(),
+    message: todoInput.value,
+    stat: false,
+  };
+
+  //Проверка инпута на пустоту
+  if (todoInput.value) {
+    //Добавление нового объекта в масив
+    todos.push(taskTemplate);
+  } else {
+    alert('Введите название задачи');
+  }
+  //Отображение данных из масива
+  localStorage.setItem('tasks', JSON.stringify(todos));
+  createTask();
+  //Обнуление данных для инпута
   todoInput.value = '';
-}
+});
 
-function delItem(e) {
-  const item = e.target;
-  //delete
-  if (item.classList.contains('todo__del-btn')) {
-    const todo = item.closest('li');
-    delLocalTodo(todo);
+function createTask() {
+  //Обнуление списка
+  todoList.innerHTML = '';
+  //Перебор всех эл масива
+  todos.forEach(item => {
+    //Шаблон для элементов
+    let taskDisplay = `<li id="${item.id}" class="content__item ${
+      item.stat ? 'compl' : ''
+    }">
+  			<p class="content__text">${item.message}</p>
+  			<div class="content__btns">
+  				<button class="content__btn content__compl">+</button>
+  				<button class="content__btn content__del">-</button>
+  			</div>
+  		</li>
+  		`;
+    //Добавление эл в список
+    todoList.innerHTML += taskDisplay;
 
-    todo.classList.add('del-anim');
-    todo.addEventListener('transitionend', function () {
-      todo.remove();
+    const todoBtnDel = document.querySelectorAll('.content__del');
+    todoBtnDel.forEach(item => {
+      item.addEventListener('click', function () {
+        //Узнаем ID элемента
+        const todoItemId = item.closest('li').getAttribute('id');
+        todos.forEach((item, index) => {
+          //В ходе перебора сравниваем ID с нужным
+          if (item.id == todoItemId) {
+            //Удаляем объект из масива
+            todos.splice(index, 1);
+            createTask();
+            localStorage.setItem('tasks', JSON.stringify(todos));
+          }
+        });
+      });
     });
-  }
 
-  //complete
-  if (item.classList.contains('todo__checkbox')) {
-    item.classList.toggle('todo__checkbox--complete');
-    item.closest('li').classList.toggle('todo__item--complete');
-  }
-}
-
-function filterItem(e) {
-  const todos = todoList.childNodes;
-  console.log(todos);
-  todos.forEach(function (todo) {
-    switch (e.target.value) {
-      case 'all':
-        todo.style.display = 'flex';
-        break;
-      case 'completed':
-        if (todo.classList.contains('todo__item--complete')) {
-          todo.style.display = 'flex';
-        } else {
-          todo.style.display = 'none';
-        }
-        break;
-      case 'uncompleted':
-        if (!todo.classList.contains('todo__item--complete')) {
-          todo.style.display = 'flex';
-        } else {
-          todo.style.display = 'none';
-        }
-        break;
-    }
+    const todoCompl = document.querySelectorAll('.content__compl');
+    todoCompl.forEach(item => {
+      item.addEventListener('click', function () {
+        //Узнаем ID элемента
+        const todoComplItemId = item.closest('li').getAttribute('id');
+        todos.forEach(item => {
+          //В ходе перебора сравниваем ID с нужным
+          if (item.id == todoComplItemId) {
+            //Меняем занчение статуса на противоположное
+            item.stat = !item.stat;
+          }
+        });
+        localStorage.setItem('tasks', JSON.stringify(todos));
+        createTask();
+      });
+    });
   });
-}
-
-function saveLocal(todo) {
-  let todos;
-  if (localStorage.getItem('todos') === null) {
-    todos = [];
-  } else {
-    todos = JSON.parse(localStorage.getItem('todos'));
-  }
-  todos.push(todo);
-  localStorage.setItem('todos', JSON.stringify(todos));
-}
-
-function getTodos() {
-  let todos;
-  if (localStorage.getItem('todos') === null) {
-    todos = [];
-  } else {
-    todos = JSON.parse(localStorage.getItem('todos'));
-  }
-  todos.forEach(todo => {
-    const todoItem = document.createElement('li');
-    todoItem.classList.add('todo__item');
-    todoList.appendChild(todoItem);
-    //create text
-    const todoText = document.createElement('p');
-    todoText.innerHTML = todo;
-    todoText.classList.add('todo__text');
-    todoItem.appendChild(todoText);
-    //create btns wrapper
-    const todoBtnsWrapper = document.createElement('div');
-    todoBtnsWrapper.classList.add('todo__btns');
-    todoItem.appendChild(todoBtnsWrapper);
-    //create checkbox
-    const todoCheck = document.createElement('button');
-    todoCheck.classList.add('todo__checkbox');
-    todoBtnsWrapper.appendChild(todoCheck);
-    //create brn for del
-    const todoDel = document.createElement('button');
-    todoDel.innerHTML = 'del';
-    todoDel.classList.add('todo__del-btn');
-    todoBtnsWrapper.appendChild(todoDel);
-    todoInput.value = '';
-  });
-}
-
-function delLocalTodo(todo) {
-  let todos;
-  if (localStorage.getItem('todos') === null) {
-    todos = [];
-  } else {
-    todos = JSON.parse(localStorage.getItem('todos'));
-  }
-  console.log(todo);
-  const todoIndex = todo.children[0].innerText;
-  todos.splice(todos.indexOf(todoIndex), 1);
-  localStorage.setItem('todos', JSON.stringify(todos));
 }

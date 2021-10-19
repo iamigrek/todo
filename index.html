@@ -5,37 +5,22 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>TODO</title>
 	<link rel="stylesheet" href="./css/style.css">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap"
-		rel="stylesheet">
-	<title>Todo List</title>
 </head>
 
 <body>
 
-	<header class="todo-header">
-		<div class="todo-header__container container">
-			<h1 class="todo-header__title">Todo list</h>
-		</div>
+	<header class="header">
+		<form action="#" class="header__form">
+			<input type="text" class="header__input">
+			<button class="header__btn">ADD</button>
+		</form>
+
 	</header>
 
-	<section class="todo">
-		<div class="todo__container container">
-			<form action="#" class="todo__form">
-				<input type="text" class="todo__add-input">
-				<button class="todo__add-btn">ADD</button>
-				<select class="todo__filter" name="todos" id="todo-filter">
-					<option value="all">All</option>
-					<option value="completed">Completed</option>
-					<option value="uncompleted">Uncompleted</option>
-				</select>
-			</form>
-
-
-			<ul class="todo__list"></ul>
-		</div>
+	<section class="content">
+		<ul class="content__list"></ul>
 	</section>
 
 	<script src="./js/main.js"></script>
